@@ -1,0 +1,24 @@
+configmaps:
+  descriptors:
+    domain_requests_per_minute: 100 # limits on overall requests for domain     
+    uris: 
+    - name: api
+      unit: minute
+      requests_per_unit: 2 
+      regex: "/api/.*"
+    # can add other uris below here. example:      
+    # - name: newapp    
+    #   unit: minute
+    #   requests_per_unit: 2
+    #   regex: "/newapp/6/.*"
+
+  
+gateways:
+- name: namspace1/gateway1
+- name: namespace2/gateway2
+
+ingress:
+  labels:
+    istio: ingressgateway 
+
+       

@@ -1,0 +1,13 @@
+apiVersion: v2
+
+name: ratelimit
+
+description: A Helm chart for ratelimit in istio
+
+maintainers:
+  - name: Rishi Gautam
+    email: rishi@cloudhero.io
+
+type: application
+
+version: 0.0.1

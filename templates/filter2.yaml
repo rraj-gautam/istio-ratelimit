@@ -1,0 +1,50 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: filter-ratelimit-svc
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      {{- range $key, $val := .Values.ingress.labels }}
+      {{ $key }}: {{ $val }}
+      {{- end}}   
+  configPatches:
+    # - applyTo: VIRTUAL_HOST
+    #   match:
+    #     context: GATEWAY
+    #     routeConfiguration:
+    #       vhost:
+    #         name: "" #applies to every route 
+    #         route:
+    #           action: ANY
+    {{- range $gateways := .Values.gateways }}
+    - applyTo: VIRTUAL_HOST
+      match:
+        context: GATEWAY
+        routeConfiguration:
+          gateway: {{ $gateways.name | quote }}
+      patch:
+        operation: MERGE
+        # Applies the rate limit rules.
+        value:
+          rate_limits:
+            - actions: # any actions in here
+              {{- range $path := $.Values.configmaps.descriptors.uris }}           
+              - header_value_match:
+                  descriptor_value: {{ $path.name | quote }}
+                  headers:
+                    - name: ":path"
+                      safe_regex_match:
+                        google_re2: {}
+                        regex: {{ $path.regex | quote }}
+              {{- end }} 
+              - request_headers:
+                  header_name: ":authority"
+                  descriptor_key: "HOST"
+                  skip_if_absent: true                                                                                                       
+              - request_headers:
+                  header_name: "cf-connecting-ip"
+                  descriptor_key: "REMOTE_ADDR"
+                  skip_if_absent: true                                                                                              
+      {{- end }}

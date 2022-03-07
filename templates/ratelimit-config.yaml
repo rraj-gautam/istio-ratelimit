@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    domain: {{ .Release.Name }}
+    descriptors:
+    {{- range $uris := .Values.configmaps.descriptors.uris }}
+      - key: header_match
+        value: {{ $uris.name | quote }}
+        descriptors:
+          - key: HOST
+            descriptors:
+              - key: REMOTE_ADDR
+                rate_limit:
+                  unit: {{ $uris.unit }}
+                  requests_per_unit: {{ $uris.requests_per_unit }}
+    {{- end }}          
+      - key: PATH
+        rate_limit:
+          unit: minute
+          requests_per_unit: {{ $.Values.configmaps.descriptors.domain_requests_per_minute }}
+#          
+
